@@ -12,8 +12,9 @@ The following repository can be used to test chatbots' suitability as browser as
 ### Usage
 1. clone the repo
 2. `uv sync`
-3. Run the script: `uv run python run_eval.py --model_name <model-provider:model_id>`
+3. Run the script: `uv run python run_eval.py --model <model-provider:model_id>`
 
 ### Datasets
 The data used in the the Mozilla HF repo here. It is downloaded automatically in the `run_eval.py` script, but can also be downloaded directly from the hub.
+
 
