@@ -52,15 +52,15 @@ def get_access_token():
         text=True).strip()
 
 
-async_client_oa = AsyncOpenAI()    # auth is at
-async_client_tg = AsyncTogether()  # auth is at os.environ[TOGETHER_API_KEY]
+async_client_oa = AsyncOpenAI()    # auth is at os.environ["OPENAI_API_KEY"]
+async_client_tg = AsyncTogether()  # auth is at os.environ["TOGETHER_API_KEY"]
 async_client_groq = AsyncOpenAI(
     api_key=os.environ['GROQ_API_KEY'],
     base_url="https://api.groq.com/openai/v1",
 )
 
 REGION = "us-central1"
-PROJECT_ID = "fx-gen-ai-sandbox"
+PROJECT_ID = os.environ["VERTEX_PROJECT_ID"]
 # can only be used for gemini models
 async_client_vertex = AsyncOpenAI(base_url=f"https://{REGION}-aiplatform.googleapis.com/v1/projects/{PROJECT_ID}/locations/{REGION}/endpoints/openapi",
     api_key=get_access_token()
@@ -127,11 +127,6 @@ async def async_make_prediction(messages, provider, model_id, tools):
         return {"error:", str(e)}   # need to stringify to store as json later
 
     message = response.choices[0].message
-    
-    # if isinstance(message, openai.types.chat.chat_completion_message.ChatCompletionMessage):
-    #     message = message.to_dict()
-    # if isinstance(message, together.types.chat_completions.ChatCompletionMessage):
-    #     message = message.model_dump()
     return message.model_dump()
 
 
@@ -211,7 +206,6 @@ def fix_conversation(messages):
 
 def main(_):
     tools = get_tools()
-    print(tools)
     provider, model_id = FLAGS.model.split(":")
     model_id_simple = model_id.split("/")[-1]
     print(" | ".join([provider, model_id, model_id_simple]))
