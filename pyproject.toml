@@ -1,0 +1,16 @@
+[project]
+name = "chat-eval"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+requires-python = ">=3.12"
+dependencies = [
+    "absl-py>=2.3.1",
+    "asyncio>=4.0.0",
+    "datasets>=4.1.0",
+    "mistralai>=1.9.10",
+    "openai>=1.107.3",
+    "pandas>=2.3.2",
+    "pyaml>=25.7.0",
+    "together>=1.5.25",
+]
