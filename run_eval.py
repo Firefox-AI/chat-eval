@@ -54,7 +54,9 @@ async_client_groq = AsyncOpenAI(
 )
 
 REGION = "us-central1"
-PROJECT_ID = os.environ["VERTEX_PROJECT_ID"]
+PROJECT_ID = os.environ.get("VERTEX_PROJECT_ID", "")
+if not PROJECT_ID:
+    print("WARN: VERTEX_PROJECT_ID not found in environment. This may cause issues when using vertex-hosted models")
 # can only be used for gemini models
 async_client_vertex = AsyncOpenAI(base_url=f"https://{REGION}-aiplatform.googleapis.com/v1/projects/{PROJECT_ID}/locations/{REGION}/endpoints/openapi",
     api_key=get_access_token()
