@@ -41,10 +41,12 @@ EVAL_COLS = [
 
 
 def get_access_token():
-    return subprocess.check_output(
-        ["gcloud", "auth", "print-access-token"], 
-        text=True).strip()
-
+    try:
+        return subprocess.check_output(
+            ["gcloud", "auth", "print-access-token"], 
+            text=True).strip()
+    except Exception e:
+        print(f"ERROR retrieving Vertex token: {e}")
 
 async_client_oa = AsyncOpenAI()    # auth is at os.environ["OPENAI_API_KEY"]
 async_client_tg = AsyncTogether()  # auth is at os.environ["TOGETHER_API_KEY"]
