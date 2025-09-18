@@ -24,18 +24,11 @@ import prompts as p
 absl_logging.set_verbosity(absl_logging.ERROR)
 
 FLAGS = flags.FLAGS
-flags.DEFINE_string("model", "together.ai:Qwen/Qwen3-Next-80B-A3B-Thinking", "Name of model to evaluate")
+flags.DEFINE_string("model", "together.ai:Qwen/Qwen3-Next-80B-A3B-Thinking", "Name of model to evaluate and provider (formatted as <provider>:<model_id>")
 flags.DEFINE_string("eval_model_id", "gpt-5", "Name of judge model (OpenAI assumed)")
-flags.DEFINE_integer("async_process_limit", 10, "Number of asynchronus processes to call")
+flags.DEFINE_integer("max_concurrency", 10, "Maximum number of asynchronus processes to run")
 flags.DEFINE_bool("skip_inference", False, "If set to True, we load inferences from existing, rather than predict")
 flags.DEFINE_string("output_dir", "data", "Location into which output data will be saved")
-
-# MODEL = "together.ai:Qwen/Qwen3-Next-80B-A3B-Thinking"
-# MODEL = "together.ai:Qwen/Qwen3-235B-A22B-Instruct-2507-tput"
-# MODEL = "groq:meta-llama/llama-4-maverick-17b-128e-instruct"
-# MODEL = "groq:meta-llama/llama-4-scout-17b-16e-instruct"
-
-EVAL_MODEL_ID = "gpt-5"
 
 EVAL_COLS = [
     "browser_context_awareness",
@@ -45,6 +38,7 @@ EVAL_COLS = [
     "tool_call_accuracy",
     "knowledge"
     ]
+
 
 def get_access_token():
     return subprocess.check_output(
@@ -215,15 +209,15 @@ def main(_):
     os.makedirs(FLAGS.output_dir, exist_ok=True)
     conversations = data['conversation'].apply(fix_conversation)
 
-    print("Making predictions")
     if not FLAGS.skip_inference:
+        print("Making predictions")
         data[f"prediction_{model_id_simple}"] = asyncio.run(
             make_predictions(
                 conversations, 
                 provider=provider, 
                 model_id=model_id, 
                 tools=tools, 
-                limit=FLAGS.async_process_limit
+                limit=FLAGS.max_concurrency
                 )
             )
         data.to_json(f"{FLAGS.output_dir}/{model_id_simple}_predictions.json", orient="records")
@@ -233,13 +227,14 @@ def main(_):
     evals = asyncio.run(
         evaluate_all(
             [(msg, pred) for msg, pred in data[['conversation', f'prediction_{model_id_simple}']].values], 
-            eval_model_id=FLAGS.eval_model_id, tools=tools, limit=FLAGS.async_process_limit
+            eval_model_id=FLAGS.eval_model_id, tools=tools, limit=FLAGS.max_concurrency
             )
         )
 
     evals_df = pd.DataFrame(evals)
     evals_df.to_json(f"{FLAGS.output_dir}/{model_id_simple}_evals.json", orient="records")
 
+    print("Finished evaluation. Results:")
     print(
         evals_df[EVAL_COLS].apply(pd.to_numeric, errors="coerce").mean()
     )
